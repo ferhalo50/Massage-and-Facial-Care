@@ -12,9 +12,7 @@ const observer = new IntersectionObserver((entries) => {
 
             entry.target.classList.add("show");
         }
-
     });
-
 });
 
 hiddenElements.forEach((el) => observer.observe(el));
@@ -23,127 +21,174 @@ hiddenElements.forEach((el) => observer.observe(el));
    MOBILE MENU
 ========================= */
 
+const header = document.getElementById("header");
 const menuToggle = document.getElementById("menu-toggle");
-
 const nav = document.getElementById("nav");
+const mobileBreakpoint = window.matchMedia("(max-width: 768px)");
 
-menuToggle.addEventListener("click", () => {
+function setMobileMenu(isOpen){
 
-    nav.classList.toggle("active");
+    if(!menuToggle || !nav){
 
-});
+        return;
+    }
+
+    nav.classList.toggle("active", isOpen);
+    menuToggle.classList.toggle("is-open", isOpen);
+    menuToggle.setAttribute("aria-expanded", String(isOpen));
+    menuToggle.setAttribute(
+        "aria-label",
+        isOpen ? "Close navigation menu" : "Open navigation menu"
+    );
+}
+
+if(menuToggle && nav){
+
+    menuToggle.addEventListener("click", () => {
+
+        setMobileMenu(!nav.classList.contains("active"));
+    });
+
+    nav.querySelectorAll("a").forEach((link) => {
+
+        link.addEventListener("click", () => {
+
+            setMobileMenu(false);
+        });
+    });
+
+    document.addEventListener("click", (event) => {
+
+        if(
+            mobileBreakpoint.matches &&
+            nav.classList.contains("active") &&
+            header &&
+            !header.contains(event.target)
+        ){
+
+            setMobileMenu(false);
+        }
+    });
+
+    document.addEventListener("keydown", (event) => {
+
+        if(event.key === "Escape"){
+
+            setMobileMenu(false);
+        }
+    });
+
+    window.addEventListener("resize", () => {
+
+        if(!mobileBreakpoint.matches){
+
+            setMobileMenu(false);
+        }
+    });
+}
 
 /* =========================
    HEADER SCROLL EFFECT
 ========================= */
 
-const header = document.getElementById("header");
-
 window.addEventListener("scroll", () => {
 
-    if(window.scrollY > 80){
+    if(!header){
 
-        header.classList.add("header-scrolled");
-
-    } else {
-
-        header.classList.remove("header-scrolled");
+        return;
     }
 
+    header.classList.toggle("header-scrolled", window.scrollY > 80);
 });
 
 /* =========================
    LANGUAGE SYSTEM
 ========================= */
 
-const languageToggle =
-document.getElementById("language-toggle");
+const languageToggle = document.getElementById("language-toggle");
+let currentLanguage = localStorage.getItem("language") || "en";
 
-let currentLanguage =
-localStorage.getItem("language") || "en";
+const appointmentEmailAddress = "spatherapy@hotmail.com";
+
+function updateAppointmentEmailLinks(){
+
+    const isSpanish = currentLanguage === "es";
+
+    const subject = isSpanish
+    ? "Solicitud de cita – Massage & Facial Care"
+    : "Appointment Request – Massage & Facial Care";
+
+    const body = isSpanish
+    ? "Hola,\n\nMe gustaría agendar una cita. Por favor, indíquenme su disponibilidad.\n\nFecha preferida:\nServicio de interés:\n\nGracias."
+    : "Hello,\n\nI would like to schedule an appointment. Please let me know your availability.\n\nPreferred date:\nService of interest:\n\nThank you.";
+
+    const mailtoLink = `mailto:${appointmentEmailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    document
+    .querySelectorAll("[data-appointment-email]")
+    .forEach((link) => {
+
+        link.href = mailtoLink;
+    });
+}
+
+function updateReadMoreButtons(){
+
+    document
+    .querySelectorAll(".read-more-btn")
+    .forEach((button) => {
+
+        const reviewText = button.previousElementSibling;
+        const isExpanded = reviewText?.classList.contains("expanded");
+
+        button.textContent = isExpanded
+        ? (currentLanguage === "es" ? button.dataset.lessEs : button.dataset.lessEn)
+        : (currentLanguage === "es" ? button.dataset.readEs : button.dataset.readEn);
+    });
+}
 
 function updateLanguage(){
 
-    /* TEXTS */
+    document.documentElement.lang = currentLanguage;
 
     document
     .querySelectorAll("[data-en]")
     .forEach((element) => {
 
-        element.textContent =
-        element.getAttribute(
-            `data-${currentLanguage}`
-        );
-
+        element.textContent = element.getAttribute(`data-${currentLanguage}`);
     });
-
-    /* PLACEHOLDERS */
 
     document
     .querySelectorAll("[data-en-placeholder]")
     .forEach((element) => {
 
-        element.placeholder =
-        element.getAttribute(
+        element.placeholder = element.getAttribute(
             `data-${currentLanguage}-placeholder`
         );
-
     });
 
-    /* BUTTON */
+    if(languageToggle){
 
-    languageToggle.textContent =
-    currentLanguage === "en"
-    ? "ES"
-    : "EN";
+        languageToggle.textContent = currentLanguage === "en" ? "ES" : "EN";
+    }
+
+    updateReadMoreButtons();
+    updateAppointmentEmailLinks();
 }
 
 updateLanguage();
 
-languageToggle.addEventListener("click", () => {
+if(languageToggle){
 
-    currentLanguage =
-    currentLanguage === "en"
-    ? "es"
-    : "en";
+    languageToggle.addEventListener("click", () => {
 
-    /* READ MORE BUTTONS */
+        currentLanguage = currentLanguage === "en" ? "es" : "en";
 
-document
-.querySelectorAll(".read-more-btn")
-.forEach((button) => {
+        localStorage.setItem("language", currentLanguage);
 
-    const reviewText =
-    button.previousElementSibling;
-
-    const isExpanded =
-    reviewText.classList.contains("expanded");
-
-    if(isExpanded){
-
-        button.textContent =
-        currentLanguage === "es"
-        ? button.dataset.lessEs
-        : button.dataset.lessEn;
-
-    } else {
-
-        button.textContent =
-        currentLanguage === "es"
-        ? button.dataset.readEs
-        : button.dataset.readEn;
-    }
-
-});
-
-    localStorage.setItem(
-        "language",
-        currentLanguage
-    );
-
-    updateLanguage();
-
-});
+        updateLanguage();
+    });
+}
 
 /* =========================
    LOADER
@@ -151,22 +196,17 @@ document
 
 window.addEventListener("load", () => {
 
-    const loader =
-    document.querySelector(".loader");
+    const loader = document.querySelector(".loader");
 
-    loader.classList.add("hidden-loader");
-
+    loader?.classList.add("hidden-loader");
 });
 
 /* =========================
    ACTIVE NAVIGATION
 ========================= */
 
-const sections =
-document.querySelectorAll("section");
-
-const navLinks =
-document.querySelectorAll("nav a");
+const sections = document.querySelectorAll("section[id]");
+const navLinks = document.querySelectorAll("nav a");
 
 window.addEventListener("scroll", () => {
 
@@ -174,118 +214,116 @@ window.addEventListener("scroll", () => {
 
     sections.forEach((section) => {
 
-        const sectionTop =
-        section.offsetTop;
+        if(window.pageYOffset >= section.offsetTop - 200){
 
-        if(pageYOffset >= sectionTop - 200){
-
-            current =
-            section.getAttribute("id");
+            current = section.getAttribute("id");
         }
-
     });
 
     navLinks.forEach((link) => {
 
-        link.classList.remove("active");
-
-        if(
-            link.getAttribute("href")
-            === `#${current}`
-        ){
-
-            link.classList.add("active");
-        }
-
+        link.classList.toggle(
+            "active",
+            link.getAttribute("href") === `#${current}`
+        );
     });
-
 });
 
 /* =========================
-   GALLERY LIGHTBOX
+   IMAGE LIGHTBOX
 ========================= */
 
-document.addEventListener("DOMContentLoaded", () => {
+const lightbox = document.getElementById("lightbox");
+const lightboxImg = document.getElementById("lightbox-img");
+const lightboxClose = document.getElementById("lightbox-close");
 
-    const galleryImages =
-    document.querySelectorAll(".gallery-item img");
+function openLightbox(src, alt){
 
-    const lightbox =
-    document.getElementById("lightbox");
+    if(!lightbox || !lightboxImg || !src){
 
-    const lightboxImg =
-    document.getElementById("lightbox-img");
+        return;
+    }
 
-    const lightboxClose =
-    document.getElementById("lightbox-close");
+    lightboxImg.src = src;
+    lightboxImg.alt = alt || "Expanded image";
+    lightbox.classList.add("active");
+    document.body.classList.add("lightbox-open");
+}
 
-    galleryImages.forEach((img) => {
+function closeLightbox(){
+
+    if(!lightbox){
+
+        return;
+    }
+
+    lightbox.classList.remove("active");
+    document.body.classList.remove("lightbox-open");
+}
+
+if(lightbox && lightboxImg && lightboxClose){
+
+    document
+    .querySelectorAll(".gallery-item img")
+    .forEach((img) => {
 
         img.addEventListener("click", () => {
 
-            lightbox.classList.add("active");
-
-            lightboxImg.src = img.src;
-
+            openLightbox(img.currentSrc || img.src, img.alt || "Gallery image");
         });
-
     });
 
-    lightboxClose.addEventListener("click", () => {
+    document
+    .querySelectorAll("[data-lightbox-src]")
+    .forEach((trigger) => {
 
-        lightbox.classList.remove("active");
+        trigger.addEventListener("click", () => {
 
+            openLightbox(
+                trigger.dataset.lightboxSrc,
+                trigger.dataset.lightboxAlt || "Expanded image"
+            );
+        });
     });
 
-    lightbox.addEventListener("click", (e) => {
+    lightboxClose.addEventListener("click", closeLightbox);
 
-        if(e.target === lightbox){
+    lightbox.addEventListener("click", (event) => {
 
-            lightbox.classList.remove("active");
+        if(event.target === lightbox){
+
+            closeLightbox();
         }
-
     });
 
-});
+    document.addEventListener("keydown", (event) => {
+
+        if(event.key === "Escape"){
+
+            closeLightbox();
+        }
+    });
+}
 
 /* =========================
    READ MORE REVIEWS
 ========================= */
 
-const readMoreButtons =
-document.querySelectorAll(".read-more-btn");
-
-readMoreButtons.forEach((button) => {
+document
+.querySelectorAll(".read-more-btn")
+.forEach((button) => {
 
     button.addEventListener("click", () => {
 
-        const reviewText =
-        button.previousElementSibling;
+        const reviewText = button.previousElementSibling;
+
+        if(!reviewText){
+
+            return;
+        }
 
         reviewText.classList.toggle("expanded");
 
-        // Detect current language
-
-        const activeLanguage =
-        currentLanguage;
-
-        if(
-            reviewText.classList.contains("expanded")
-        ){
-
-            button.textContent =
-            activeLanguage === "es"
-            ? button.dataset.lessEs
-            : button.dataset.lessEn;
-
-        } else {
-
-            button.textContent =
-            activeLanguage === "es"
-            ? button.dataset.readEs
-            : button.dataset.readEn;
-        }
-
+        updateReadMoreButtons();
     });
-
 });
