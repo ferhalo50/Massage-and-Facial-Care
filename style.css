@@ -659,6 +659,31 @@ nav a:hover{
     line-height:1.78;
 }
 
+/* Organic facial copy: shorter, balanced blocks keep the card easy to scan. */
+.organic-facial-copy,
+.organic-facial-note{
+
+    max-width:39ch;
+
+    text-wrap:balance;
+}
+
+.organic-facial-copy{
+
+    margin-bottom:13px !important;
+}
+
+.organic-facial-note{
+
+    margin-bottom:24px !important;
+
+    color:#dedede !important;
+
+    font-size:0.93rem !important;
+
+    line-height:1.68 !important;
+}
+
 .service-price-list{
 
     position:relative;
@@ -1527,6 +1552,14 @@ footer{
     .service-card h3{
 
         font-size:1.36rem;
+    }
+
+    .organic-facial-copy,
+    .organic-facial-note{
+
+        max-width:100%;
+
+        text-wrap:balance;
     }
 
     .price-row,
